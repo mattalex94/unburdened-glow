@@ -59,7 +59,7 @@ const EventCalendarOverview = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [viewGranularity, setViewGranularity] = useState<ViewGranularity>("quarter");
 
-  const chartData = useMemo(() => {
+  const { chartData, yMax } = useMemo(() => {
     const { start, end } = getDateRange(viewGranularity);
     const days = eachDayOfInterval({ start, end });
 
@@ -68,17 +68,24 @@ const EventCalendarOverview = () => {
         ? sampleEvents
         : sampleEvents.filter((e) => e.category === categoryFilter);
 
-    return days.map((day): ChartDataPoint => {
+    // Compute max KPI value for full-height bars
+    let maxKpi = 0;
+    days.forEach((day) => {
+      const kpi = dailyKpiData[format(day, "yyyy-MM-dd")];
+      if (kpi) {
+        const v = kpi[kpiMetric];
+        if (v > maxKpi) maxKpi = v;
+      }
+    });
+    const yMax = Math.ceil(maxKpi * 1.15);
+
+    const data = days.map((day): ChartDataPoint => {
       const dateStr = format(day, "yyyy-MM-dd");
-      const dateLabel =
-        viewGranularity === "month"
-          ? format(day, "dd MMM")
-          : format(day, "dd MMM");
+      const dateLabel = format(day, "dd MMM");
 
       const kpi = dailyKpiData[dateStr];
       const kpiValue = kpi ? kpi[kpiMetric] : 0;
 
-      // Find active events on this day
       const activeEvents = filteredEvents.filter((evt) =>
         isWithinInterval(day, {
           start: parseISO(evt.startDate),
@@ -86,11 +93,11 @@ const EventCalendarOverview = () => {
         })
       );
 
-      // Build category bar values (1 = active, 0 = not)
+      // Set category value to yMax when active so bars fill full height
       const categoryValues: Record<string, number> = {};
       CATEGORIES.forEach((cat) => {
         const hasEvent = activeEvents.some((e) => e.category === cat);
-        categoryValues[cat] = hasEvent ? 1 : 0;
+        categoryValues[cat] = hasEvent ? yMax : 0;
       });
 
       return {
@@ -101,6 +108,8 @@ const EventCalendarOverview = () => {
         ...categoryValues,
       };
     });
+
+    return { chartData: data, yMax };
   }, [kpiMetric, categoryFilter, viewGranularity]);
 
   const handleEventClick = (event: CalendarEvent) => {
@@ -216,11 +225,6 @@ const EventCalendarOverview = () => {
                 axisLine={false}
               />
               <YAxis
-                yAxisId="events"
-                hide
-                domain={[0, 6]}
-              />
-              <YAxis
                 yAxisId="kpi"
                 orientation="right"
                 tick={{ fontSize: 10 }}
@@ -228,6 +232,7 @@ const EventCalendarOverview = () => {
                 tickLine={false}
                 axisLine={false}
                 width={45}
+                domain={[0, yMax]}
               />
               <Tooltip content={<CustomTooltip />} />
 
@@ -235,11 +240,12 @@ const EventCalendarOverview = () => {
                 <Bar
                   key={cat}
                   dataKey={cat}
-                  yAxisId="events"
-                  stackId="events"
+                  yAxisId="kpi"
                   fill={CATEGORY_COLORS[cat]}
-                  radius={[1, 1, 0, 0]}
+                  fillOpacity={0.15}
+                  radius={0}
                   cursor="pointer"
+                  isAnimationActive={false}
                   onClick={(_data: any, _index: number, e: any) => {
                     const point = chartData[_index];
                     if (point?.events.length) {
