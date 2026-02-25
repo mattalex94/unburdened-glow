@@ -1,44 +1,30 @@
 
 
-## Event Statistics Summary Section
+## Category-Based Rows for Event Indicators
 
-A new section below the Event Calendar Overview providing BTEA with distributional insights about the events calendar.
+### Current Behavior
+Events are assigned to slots arbitrarily (slot 1, 2, 3...) based on the order they appear on each day. This means the same event category can jump between rows on different days.
 
-### Data Model Updates (`src/data/eventCalendarData.ts`)
+### New Behavior
+Each category gets a **dedicated row** at the bottom of the chart. The rows are always in the same order (Conference, Exhibition, Concert, Sports, Cultural). A colored block appears in a category's row only on days when an event of that category is active. This ensures consecutive blocks of the same category form a continuous horizontal band.
 
-Add two new fields to `CalendarEvent`:
-- `area`: string (e.g. "Manama", "Muharraq", "Seef", "Riffa", "Bahrain Bay") -- derived from venue locations
-- `isFree`: boolean
+### Changes to `src/components/dashboard/EventCalendarOverview.tsx`
 
-Update all 18 sample events with these fields, distributing areas across Bahrain locations and mixing free/paid.
+**Data preparation:**
+- Replace the slot-based approach (`eventSlot1`..`eventSlot4`, `slotCategories`) with category-based keys.
+- For each day, compute `catConference`, `catExhibition`, `catConcert`, `catSports`, `catCultural` -- each set to `slotHeight` if an event of that category is active, 0 otherwise.
+- The number of Bar components changes from `MAX_SLOTS` (4) to `CATEGORIES.length` (5), one per category.
 
-### New Component (`src/components/dashboard/EventStatisticsSummary.tsx`)
+**Chart rendering:**
+- Replace the `SLOT_KEYS` loop with a loop over `CATEGORIES`.
+- Each `Bar` uses `dataKey={`cat${category}`}`, `stackId="indicators"`, and a fixed `fill` of `CATEGORY_COLORS[category]` -- no need for per-Cell coloring since the entire bar is one category.
+- Remove `Cell` children since color is constant per bar.
 
-A card-based section with the title "Event Statistics Summary" containing a responsive grid of 6 items:
+**Filtering:**
+- When a category filter is applied, only that category's bar appears (the others will be 0 on all days).
+- The `filteredEvents` logic already handles this; the category keys will naturally be 0 for filtered-out categories.
 
-1. **Total Events card** -- Large number (e.g. "18") with a simulated YoY change badge (e.g. "+12% vs last year"). Simple summary card using Card component.
+**Click handling:**
+- On click of a category bar on a given day, find the matching event from `activeEvents` for that category.
 
-2. **Events by Category** -- Horizontal bar chart (Recharts `BarChart` with `layout="vertical"`) showing count per category, colored by `CATEGORY_COLORS`.
-
-3. **Average Events per Month** -- Vertical bar chart with Jan/Feb/Mar bars showing event count per month.
-
-4. **Event Density by Area** -- Horizontal bar chart showing count per area (Manama, Muharraq, etc.).
-
-5. **Free vs Paid Split** -- Donut chart (Recharts `PieChart` with inner radius) showing the ratio.
-
-6. **Average Event Duration** -- Summary card showing the average duration in days across all events.
-
-Layout: 3-column grid on desktop (`grid-cols-3`), 2 columns on tablet, 1 on mobile. Each chart ~200px tall inside its card.
-
-### Page Integration (`src/pages/Index.tsx`)
-
-Import and render `EventStatisticsSummary` below `EventCalendarOverview` in the main area.
-
-### Technical Details
-
-- All statistics are computed from `sampleEvents` using `useMemo`
-- Duration calculated via `differenceInDays` from date-fns (endDate - startDate + 1)
-- Month grouping via `getMonth` from date-fns
-- No new dependencies needed -- uses existing Recharts and shadcn Card components
-- Colors for charts reuse `CATEGORY_COLORS` where applicable, neutral colors for area/month charts
-
+This is a straightforward refactor of the data mapping and bar rendering -- no new dependencies or structural changes needed.
