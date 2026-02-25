@@ -79,18 +79,32 @@ const EventStatisticsSummary = () => {
     <section className="space-y-4">
       <h2 className="text-lg font-semibold text-foreground">Event Statistics Summary</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Total Events */}
+        {/* Total Events & Avg Duration */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Events</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Overview</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-baseline gap-3">
-              <span className="text-4xl font-bold text-foreground">{stats.total}</span>
-              <Badge variant="secondary" className="gap-1">
-                <TrendingUp className="h-3 w-3" />
-                +12% vs last year
-              </Badge>
+          <CardContent className="space-y-4">
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Total Events</p>
+              <div className="flex items-baseline gap-3">
+                <span className="text-4xl font-bold text-foreground">{stats.total}</span>
+                <Badge variant="secondary" className="gap-1">
+                  <TrendingUp className="h-3 w-3" />
+                  +12% vs last year
+                </Badge>
+              </div>
+            </div>
+            <div className="border-t pt-4">
+              <p className="text-xs text-muted-foreground mb-1">Avg. Event Duration</p>
+              <div className="flex items-baseline gap-2">
+                <span className="text-4xl font-bold text-foreground">{stats.avgDuration}</span>
+                <span className="text-muted-foreground text-sm">days</span>
+              </div>
+              <div className="flex items-center gap-1.5 mt-1 text-muted-foreground text-xs">
+                <Clock className="h-3.5 w-3.5" />
+                Across all {stats.total} events
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -188,22 +202,6 @@ const EventStatisticsSummary = () => {
           </CardContent>
         </Card>
 
-        {/* Avg Duration */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Average Event Duration</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-bold text-foreground">{stats.avgDuration}</span>
-              <span className="text-muted-foreground text-sm">days</span>
-            </div>
-            <div className="flex items-center gap-1.5 mt-2 text-muted-foreground text-xs">
-              <Clock className="h-3.5 w-3.5" />
-              Across all {stats.total} events
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </section>
   );
