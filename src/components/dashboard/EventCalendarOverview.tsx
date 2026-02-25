@@ -162,10 +162,6 @@ const EventCalendarOverview = () => {
 
   const renderLegend = () => (
     <div className="flex flex-wrap items-center justify-center gap-4 pt-2 text-xs">
-      <div className="flex items-center gap-1.5">
-        <div className="h-2.5 w-2.5 rounded-sm bg-muted-foreground/20" />
-        <span className="text-muted-foreground">Event period</span>
-      </div>
       {CATEGORIES.map((cat) => (
         <div key={cat} className="flex items-center gap-1.5">
           <div
@@ -251,17 +247,6 @@ const EventCalendarOverview = () => {
                 domain={[0, yMax]}
               />
               <Tooltip content={<CustomTooltip />} />
-
-              {/* Neutral grey background for event days */}
-              <Bar
-                dataKey="eventBackground"
-                yAxisId="kpi"
-                fill="hsl(var(--muted-foreground))"
-                fillOpacity={0.12}
-                radius={0}
-                isAnimationActive={false}
-                maxBarSize={999}
-              />
 
               {/* Stacked category indicator slots at the bottom */}
               {SLOT_KEYS.map((slotKey, slotIndex) => (
