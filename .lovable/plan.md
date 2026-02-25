@@ -1,24 +1,45 @@
 
+Goal
+- Remove all visible white gaps so event color overlays appear as continuous, full-width rectangles across active date ranges.
 
-## Make Event Bars Full-Height Semi-Transparent Overlays
+What is causing the gaps now
+- The chart renders one `Bar` per category (5 bars per day). Recharts allocates horizontal slots for each bar series, so even with `barCategoryGap={0}`, zero-value categories still reserve width, creating visible spacing.
+- Vertical grid lines can visually read as “gaps” between bands.
+- Small chart right margin also leaves a light strip at the edge.
 
-Change the event category bars from small stacked bars at the bottom to full-height semi-transparent colored rectangles that overlay the entire chart area, so the category colors visually intersect with the KPI trend line.
+Implementation plan
 
-### Changes to `src/components/dashboard/EventCalendarOverview.tsx`
+1) Update bar layout to overlap categories in the same full-width slot
+- In `src/components/dashboard/EventCalendarOverview.tsx`:
+  - Keep multiple category `Bar`s (so category colors are preserved).
+  - Change `ComposedChart` gap behavior to overlap bars instead of grouping:
+    - keep `barCategoryGap={0}`
+    - set `barGap="-100%"`
+  - Keep bars on `yAxisId="kpi"` with current full-height values (`yMax`) and `radius={0}`.
+  - Keep `maxBarSize={999}` (or replace with explicit `barSize`) so the band occupies the entire date bucket width.
 
-**Data preparation:**
-- Instead of setting category values to `1` when active, set them to the maximum value of the KPI Y-axis domain (computed dynamically from the data, e.g. max kpiValue + padding)
-- This makes the bars extend to the full chart height
+2) Remove visual separators that look like white spaces
+- Adjust `CartesianGrid` to disable vertical lines:
+  - `vertical={false}`
+  - keep horizontal lines only (optional lighter stroke).
+- This ensures no thin vertical separators appear between date buckets.
 
-**Bar rendering:**
-- Move bars from the hidden `events` Y-axis to the `kpi` Y-axis so they share the same scale
-- Add `fillOpacity={0.15}` (or similar low value) to make them semi-transparent
-- Remove `stackId` so overlapping categories layer independently with transparency
-- Remove the hidden `events` Y-axis entirely since it's no longer needed
-- Set `radius={0}` for clean rectangular bands
+3) Tighten edge spacing so overlays reach chart boundaries
+- Reduce/remove extra horizontal chart margin where possible:
+  - set chart margin right to minimal needed for y-axis labels (or 0 if labels remain readable).
+- Add `XAxis` padding control:
+  - `padding={{ left: 0, right: 0 }}` to avoid extra side gaps.
 
-**Rendering order:**
-- Render the `Bar` elements first, then the `Line` on top, so the KPI line draws over the translucent bands
+4) Preserve interaction behavior
+- Keep click handling on bars to continue opening/preparing event detail context.
+- Keep KPI line rendered after bars so line stays visible above overlays.
 
-The result: colored translucent vertical bands appear wherever events are active, and the KPI line is clearly visible through/on top of them.
+5) Validate behavior across all views
+- Verify Month/Quarter/Year all render continuous, no-gap overlays.
+- Verify category filter still works and active ranges remain full-height.
+- Confirm KPI line contrast remains readable after overlap change.
 
+Technical notes
+- If tiny seams still appear on some pixel widths, fallback refinement:
+  - switch from per-day bars to event-range `ReferenceArea` overlays (`x1`/`x2`) for truly continuous blocks per event interval.
+  - This is a second-step fallback only if overlap + grid changes are insufficient.
