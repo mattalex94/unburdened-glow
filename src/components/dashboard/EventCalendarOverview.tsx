@@ -59,6 +59,9 @@ const EventCalendarOverview = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [viewGranularity, setViewGranularity] = useState<ViewGranularity>("quarter");
 
+  const MAX_SLOTS = 4;
+  const SLOT_KEYS = Array.from({ length: MAX_SLOTS }, (_, i) => `eventSlot${i + 1}`);
+
   const { chartData, yMax } = useMemo(() => {
     const { start, end } = getDateRange(viewGranularity);
     const days = eachDayOfInterval({ start, end });
@@ -68,7 +71,7 @@ const EventCalendarOverview = () => {
         ? sampleEvents
         : sampleEvents.filter((e) => e.category === categoryFilter);
 
-    // Compute max KPI value for full-height bars
+    // Compute max KPI value
     let maxKpi = 0;
     days.forEach((day) => {
       const kpi = dailyKpiData[format(day, "yyyy-MM-dd")];
@@ -78,6 +81,7 @@ const EventCalendarOverview = () => {
       }
     });
     const yMax = Math.ceil(maxKpi * 1.15);
+    const slotHeight = yMax * 0.035;
 
     const data = days.map((day): ChartDataPoint => {
       const dateStr = format(day, "yyyy-MM-dd");
@@ -93,19 +97,26 @@ const EventCalendarOverview = () => {
         })
       );
 
-      // Set category value to yMax when active so bars fill full height
-      const categoryValues: Record<string, number> = {};
-      CATEGORIES.forEach((cat) => {
-        const hasEvent = activeEvents.some((e) => e.category === cat);
-        categoryValues[cat] = hasEvent ? yMax : 0;
-      });
+      // Neutral background for any day with events
+      const eventBackground = activeEvents.length > 0 ? yMax : 0;
+
+      // Slot values + category tracking
+      const slotValues: Record<string, number> = {};
+      const slotCategories: (EventCategory | null)[] = [];
+      for (let i = 0; i < MAX_SLOTS; i++) {
+        const evt = activeEvents[i];
+        slotValues[`eventSlot${i + 1}`] = evt ? slotHeight : 0;
+        slotCategories.push(evt ? evt.category : null);
+      }
 
       return {
         date: dateStr,
         dateLabel,
         kpiValue,
         events: activeEvents,
-        ...categoryValues,
+        eventBackground,
+        slotCategories,
+        ...slotValues,
       };
     });
 
@@ -151,6 +162,10 @@ const EventCalendarOverview = () => {
 
   const renderLegend = () => (
     <div className="flex flex-wrap items-center justify-center gap-4 pt-2 text-xs">
+      <div className="flex items-center gap-1.5">
+        <div className="h-2.5 w-2.5 rounded-sm bg-muted-foreground/20" />
+        <span className="text-muted-foreground">Event period</span>
+      </div>
       {CATEGORIES.map((cat) => (
         <div key={cat} className="flex items-center gap-1.5">
           <div
@@ -237,24 +252,46 @@ const EventCalendarOverview = () => {
               />
               <Tooltip content={<CustomTooltip />} />
 
-              {CATEGORIES.map((cat) => (
+              {/* Neutral grey background for event days */}
+              <Bar
+                dataKey="eventBackground"
+                yAxisId="kpi"
+                fill="hsl(var(--muted-foreground))"
+                fillOpacity={0.12}
+                radius={0}
+                isAnimationActive={false}
+                maxBarSize={999}
+              />
+
+              {/* Stacked category indicator slots at the bottom */}
+              {SLOT_KEYS.map((slotKey, slotIndex) => (
                 <Bar
-                  key={cat}
-                  dataKey={cat}
+                  key={slotKey}
+                  dataKey={slotKey}
                   yAxisId="kpi"
-                  fill={CATEGORY_COLORS[cat]}
-                  fillOpacity={0.35}
+                  stackId="indicators"
                   radius={0}
-                  cursor="pointer"
                   isAnimationActive={false}
                   maxBarSize={999}
-                  onClick={(_data: any, _index: number, e: any) => {
+                  cursor="pointer"
+                  onClick={(_data: any, _index: number) => {
                     const point = chartData[_index];
-                    if (point?.events.length) {
-                      handleEventClick(point.events[0]);
+                    if (point?.events[slotIndex]) {
+                      handleEventClick(point.events[slotIndex]);
                     }
                   }}
-                />
+                >
+                  {chartData.map((entry, i) => {
+                    const cats = entry.slotCategories as (EventCategory | null)[];
+                    const cat = cats[slotIndex];
+                    return (
+                      <Cell
+                        key={i}
+                        fill={cat ? CATEGORY_COLORS[cat] : "transparent"}
+                      />
+                    );
+                  })}
+                </Bar>
               ))}
 
               <Line
