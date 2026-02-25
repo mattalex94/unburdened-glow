@@ -15,30 +15,32 @@ export interface CalendarEvent {
   startDate: string; // YYYY-MM-DD
   endDate: string;
   venue: string;
+  area: string;
+  isFree: boolean;
 }
 
 export const sampleEvents: CalendarEvent[] = [
   // Jan: several overlapping clusters
-  { id: "e1", name: "Gulf Industry Fair", category: "Exhibition", startDate: "2026-01-05", endDate: "2026-01-10", venue: "BIECC Hall A" },
-  { id: "e2", name: "Bahrain FinTech Summit", category: "Conference", startDate: "2026-01-07", endDate: "2026-01-11", venue: "Four Seasons" },
-  { id: "e3", name: "Winter Jazz Series", category: "Concert", startDate: "2026-01-09", endDate: "2026-01-12", venue: "La Fontaine" },
-  { id: "e4", name: "GCC Athletics Championship", category: "Sports", startDate: "2026-01-16", endDate: "2026-01-20", venue: "National Stadium" },
-  { id: "e5", name: "Pearl Heritage Week", category: "Cultural", startDate: "2026-01-18", endDate: "2026-01-24", venue: "Muharraq" },
-  { id: "e6", name: "Desert Rock Festival", category: "Concert", startDate: "2026-01-22", endDate: "2026-01-25", venue: "Bahrain Bay" },
+  { id: "e1", name: "Gulf Industry Fair", category: "Exhibition", startDate: "2026-01-05", endDate: "2026-01-10", venue: "BIECC Hall A", area: "Manama", isFree: false },
+  { id: "e2", name: "Bahrain FinTech Summit", category: "Conference", startDate: "2026-01-07", endDate: "2026-01-11", venue: "Four Seasons", area: "Bahrain Bay", isFree: false },
+  { id: "e3", name: "Winter Jazz Series", category: "Concert", startDate: "2026-01-09", endDate: "2026-01-12", venue: "La Fontaine", area: "Manama", isFree: true },
+  { id: "e4", name: "GCC Athletics Championship", category: "Sports", startDate: "2026-01-16", endDate: "2026-01-20", venue: "National Stadium", area: "Riffa", isFree: true },
+  { id: "e5", name: "Pearl Heritage Week", category: "Cultural", startDate: "2026-01-18", endDate: "2026-01-24", venue: "Muharraq", area: "Muharraq", isFree: true },
+  { id: "e6", name: "Desert Rock Festival", category: "Concert", startDate: "2026-01-22", endDate: "2026-01-25", venue: "Bahrain Bay", area: "Bahrain Bay", isFree: false },
   // Feb: dense overlapping period
-  { id: "e7", name: "Arab Health Expo", category: "Exhibition", startDate: "2026-02-01", endDate: "2026-02-06", venue: "BIECC Hall B" },
-  { id: "e8", name: "StartUp Bahrain Forum", category: "Conference", startDate: "2026-02-03", endDate: "2026-02-07", venue: "Ritz-Carlton" },
-  { id: "e9", name: "Bahrain Grand Prix Weekend", category: "Sports", startDate: "2026-02-05", endDate: "2026-02-08", venue: "BIC Circuit" },
-  { id: "e10", name: "Spring of Culture", category: "Cultural", startDate: "2026-02-14", endDate: "2026-02-22", venue: "National Theatre" },
-  { id: "e11", name: "Jazz Night Series", category: "Concert", startDate: "2026-02-18", endDate: "2026-02-21", venue: "La Fontaine" },
-  { id: "e12", name: "Tech Innovation Expo", category: "Exhibition", startDate: "2026-02-20", endDate: "2026-02-24", venue: "BIECC Hall A" },
+  { id: "e7", name: "Arab Health Expo", category: "Exhibition", startDate: "2026-02-01", endDate: "2026-02-06", venue: "BIECC Hall B", area: "Manama", isFree: false },
+  { id: "e8", name: "StartUp Bahrain Forum", category: "Conference", startDate: "2026-02-03", endDate: "2026-02-07", venue: "Ritz-Carlton", area: "Seef", isFree: false },
+  { id: "e9", name: "Bahrain Grand Prix Weekend", category: "Sports", startDate: "2026-02-05", endDate: "2026-02-08", venue: "BIC Circuit", area: "Riffa", isFree: false },
+  { id: "e10", name: "Spring of Culture", category: "Cultural", startDate: "2026-02-14", endDate: "2026-02-22", venue: "National Theatre", area: "Manama", isFree: true },
+  { id: "e11", name: "Jazz Night Series", category: "Concert", startDate: "2026-02-18", endDate: "2026-02-21", venue: "La Fontaine", area: "Manama", isFree: true },
+  { id: "e12", name: "Tech Innovation Expo", category: "Exhibition", startDate: "2026-02-20", endDate: "2026-02-24", venue: "BIECC Hall A", area: "Manama", isFree: false },
   // Mar: triple overlap
-  { id: "e13", name: "Oil & Gas Conference", category: "Conference", startDate: "2026-03-02", endDate: "2026-03-06", venue: "Gulf Hotel" },
-  { id: "e14", name: "Food & Hospitality Expo", category: "Exhibition", startDate: "2026-03-04", endDate: "2026-03-09", venue: "BIECC Hall A" },
-  { id: "e15", name: "International Marathon", category: "Sports", startDate: "2026-03-05", endDate: "2026-03-07", venue: "Manama Corniche" },
-  { id: "e16", name: "Electronica Festival", category: "Concert", startDate: "2026-03-15", endDate: "2026-03-18", venue: "Bahrain Bay" },
-  { id: "e17", name: "Bahrain Art Week", category: "Cultural", startDate: "2026-03-16", endDate: "2026-03-22", venue: "National Museum" },
-  { id: "e18", name: "Startup Pitch Night", category: "Conference", startDate: "2026-03-17", endDate: "2026-03-19", venue: "Ritz-Carlton" },
+  { id: "e13", name: "Oil & Gas Conference", category: "Conference", startDate: "2026-03-02", endDate: "2026-03-06", venue: "Gulf Hotel", area: "Seef", isFree: false },
+  { id: "e14", name: "Food & Hospitality Expo", category: "Exhibition", startDate: "2026-03-04", endDate: "2026-03-09", venue: "BIECC Hall A", area: "Manama", isFree: true },
+  { id: "e15", name: "International Marathon", category: "Sports", startDate: "2026-03-05", endDate: "2026-03-07", venue: "Manama Corniche", area: "Manama", isFree: true },
+  { id: "e16", name: "Electronica Festival", category: "Concert", startDate: "2026-03-15", endDate: "2026-03-18", venue: "Bahrain Bay", area: "Bahrain Bay", isFree: false },
+  { id: "e17", name: "Bahrain Art Week", category: "Cultural", startDate: "2026-03-16", endDate: "2026-03-22", venue: "National Museum", area: "Muharraq", isFree: true },
+  { id: "e18", name: "Startup Pitch Night", category: "Conference", startDate: "2026-03-17", endDate: "2026-03-19", venue: "Ritz-Carlton", area: "Seef", isFree: false },
 ];
 
 export type KpiMetric = "occupancy" | "adr" | "revpar" | "fnb_covers";
