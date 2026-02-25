@@ -8,6 +8,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Cell,
   Legend,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -94,10 +95,11 @@ const EventCalendarOverview = () => {
 
       const eventBackground = activeEvents.length > 0 ? yMax : 0;
 
-      // Category-based keys
+      // Category-based keys — always allocate space so rows stay aligned
       const catValues: Record<string, number> = {};
       CATEGORIES.forEach((cat) => {
-        catValues[`cat${cat}`] = activeEvents.some((e) => e.category === cat) ? slotHeight : 0;
+        catValues[`cat${cat}`] = slotHeight;
+        catValues[`cat${cat}Active`] = activeEvents.some((e) => e.category === cat) ? 1 : 0;
       });
 
       return {
@@ -245,7 +247,6 @@ const EventCalendarOverview = () => {
                   dataKey={`cat${cat}`}
                   yAxisId="kpi"
                   stackId="indicators"
-                  fill={CATEGORY_COLORS[cat]}
                   radius={0}
                   isAnimationActive={false}
                   maxBarSize={999}
@@ -255,7 +256,14 @@ const EventCalendarOverview = () => {
                     const evt = point?.events.find((e: CalendarEvent) => e.category === cat);
                     if (evt) handleEventClick(evt);
                   }}
-                />
+                >
+                  {chartData.map((entry, i) => (
+                    <Cell
+                      key={i}
+                      fill={entry[`cat${cat}Active`] ? CATEGORY_COLORS[cat] : "transparent"}
+                    />
+                  ))}
+                </Bar>
               ))}
 
               <Line
