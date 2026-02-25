@@ -8,7 +8,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Cell,
   Legend,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -59,9 +58,6 @@ const EventCalendarOverview = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [viewGranularity, setViewGranularity] = useState<ViewGranularity>("quarter");
 
-  const MAX_SLOTS = 4;
-  const SLOT_KEYS = Array.from({ length: MAX_SLOTS }, (_, i) => `eventSlot${i + 1}`);
-
   const { chartData, yMax } = useMemo(() => {
     const { start, end } = getDateRange(viewGranularity);
     const days = eachDayOfInterval({ start, end });
@@ -71,7 +67,6 @@ const EventCalendarOverview = () => {
         ? sampleEvents
         : sampleEvents.filter((e) => e.category === categoryFilter);
 
-    // Compute max KPI value
     let maxKpi = 0;
     days.forEach((day) => {
       const kpi = dailyKpiData[format(day, "yyyy-MM-dd")];
@@ -97,17 +92,13 @@ const EventCalendarOverview = () => {
         })
       );
 
-      // Neutral background for any day with events
       const eventBackground = activeEvents.length > 0 ? yMax : 0;
 
-      // Slot values + category tracking
-      const slotValues: Record<string, number> = {};
-      const slotCategories: (EventCategory | null)[] = [];
-      for (let i = 0; i < MAX_SLOTS; i++) {
-        const evt = activeEvents[i];
-        slotValues[`eventSlot${i + 1}`] = evt ? slotHeight : 0;
-        slotCategories.push(evt ? evt.category : null);
-      }
+      // Category-based keys
+      const catValues: Record<string, number> = {};
+      CATEGORIES.forEach((cat) => {
+        catValues[`cat${cat}`] = activeEvents.some((e) => e.category === cat) ? slotHeight : 0;
+      });
 
       return {
         date: dateStr,
@@ -115,8 +106,7 @@ const EventCalendarOverview = () => {
         kpiValue,
         events: activeEvents,
         eventBackground,
-        slotCategories,
-        ...slotValues,
+        ...catValues,
       };
     });
 
@@ -248,35 +238,24 @@ const EventCalendarOverview = () => {
               />
               <Tooltip content={<CustomTooltip />} />
 
-              {/* Stacked category indicator slots at the bottom */}
-              {SLOT_KEYS.map((slotKey, slotIndex) => (
+              {/* Stacked category indicator rows at the bottom */}
+              {CATEGORIES.map((cat) => (
                 <Bar
-                  key={slotKey}
-                  dataKey={slotKey}
+                  key={cat}
+                  dataKey={`cat${cat}`}
                   yAxisId="kpi"
                   stackId="indicators"
+                  fill={CATEGORY_COLORS[cat]}
                   radius={0}
                   isAnimationActive={false}
                   maxBarSize={999}
                   cursor="pointer"
                   onClick={(_data: any, _index: number) => {
                     const point = chartData[_index];
-                    if (point?.events[slotIndex]) {
-                      handleEventClick(point.events[slotIndex]);
-                    }
+                    const evt = point?.events.find((e: CalendarEvent) => e.category === cat);
+                    if (evt) handleEventClick(evt);
                   }}
-                >
-                  {chartData.map((entry, i) => {
-                    const cats = entry.slotCategories as (EventCategory | null)[];
-                    const cat = cats[slotIndex];
-                    return (
-                      <Cell
-                        key={i}
-                        fill={cat ? CATEGORY_COLORS[cat] : "transparent"}
-                      />
-                    );
-                  })}
-                </Bar>
+                />
               ))}
 
               <Line
