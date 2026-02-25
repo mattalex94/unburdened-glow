@@ -91,4 +91,29 @@ function generateDailyKpi() {
   return data;
 }
 
+// Baseline: same structure but WITHOUT event boost
+function generateBaselineKpi() {
+  const data: Record<string, { occupancy: number; adr: number; revpar: number; fnb_covers: number }> = {};
+  const start = new Date(2026, 0, 1);
+  const end = new Date(2026, 2, 31);
+
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    const key = d.toISOString().split("T")[0];
+    const dayOfWeek = d.getDay();
+    const isWeekend = dayOfWeek === 5 || dayOfWeek === 6;
+    const base = isWeekend ? 78 : 62;
+    const variance = () => Math.round((Math.random() - 0.5) * 16);
+
+    const occupancy = Math.min(98, Math.max(40, base + variance()));
+    const adr = Math.round(45 + occupancy * 0.6 + variance() * 0.5);
+    const revpar = Math.round(adr * (occupancy / 100));
+    const fnb_covers = Math.round(200 + occupancy * 4 + variance() * 10);
+
+    data[key] = { occupancy, adr, revpar, fnb_covers };
+  }
+
+  return data;
+}
+
 export const dailyKpiData = generateDailyKpi();
+export const baselineKpiData = generateBaselineKpi();
