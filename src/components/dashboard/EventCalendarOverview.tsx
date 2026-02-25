@@ -242,7 +242,7 @@ const EventCalendarOverview = () => {
                   dataKey={cat}
                   yAxisId="kpi"
                   fill={CATEGORY_COLORS[cat]}
-                  fillOpacity={0.15}
+                  fillOpacity={0.35}
                   radius={0}
                   cursor="pointer"
                   isAnimationActive={false}
