@@ -214,8 +214,8 @@ const EventCalendarOverview = () => {
       <CardContent>
         <div className="h-[350px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={chartData} margin={{ top: 8, right: 12, left: 0, bottom: 0 }} barCategoryGap={0} barGap={0}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-border/40" />
+            <ComposedChart data={chartData} margin={{ top: 8, right: 0, left: 0, bottom: 0 }} barCategoryGap={0} barGap="-100%">
+              <CartesianGrid strokeDasharray="3 3" className="stroke-border/40" vertical={false} />
               <XAxis
                 dataKey="dateLabel"
                 tick={{ fontSize: 10 }}
@@ -223,6 +223,7 @@ const EventCalendarOverview = () => {
                 interval={tickInterval}
                 tickLine={false}
                 axisLine={false}
+                padding={{ left: 0, right: 0 }}
               />
               <YAxis
                 yAxisId="kpi"
