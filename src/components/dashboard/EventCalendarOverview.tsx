@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ComposedChart,
   Bar,
@@ -55,6 +56,7 @@ interface ChartDataPoint {
 }
 
 const EventCalendarOverview = () => {
+  const navigate = useNavigate();
   const [kpiMetric, setKpiMetric] = useState<KpiMetric>("occupancy");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [viewGranularity, setViewGranularity] = useState<ViewGranularity>("quarter");
@@ -116,7 +118,7 @@ const EventCalendarOverview = () => {
   }, [kpiMetric, categoryFilter, viewGranularity]);
 
   const handleEventClick = (event: CalendarEvent) => {
-    console.log("Event clicked — ready for detail view:", event);
+    navigate(`/event/${event.id}`);
   };
 
   const CustomTooltip = ({ active, payload, label }: any) => {
