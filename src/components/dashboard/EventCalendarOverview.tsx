@@ -214,7 +214,7 @@ const EventCalendarOverview = () => {
       <CardContent>
         <div className="h-[350px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={chartData} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+            <ComposedChart data={chartData} margin={{ top: 8, right: 12, left: 0, bottom: 0 }} barCategoryGap={0} barGap={0}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-border/40" />
               <XAxis
                 dataKey="dateLabel"
@@ -246,6 +246,7 @@ const EventCalendarOverview = () => {
                   radius={0}
                   cursor="pointer"
                   isAnimationActive={false}
+                  maxBarSize={999}
                   onClick={(_data: any, _index: number, e: any) => {
                     const point = chartData[_index];
                     if (point?.events.length) {
