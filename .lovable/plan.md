@@ -1,63 +1,44 @@
 
 
-## Redesign Event Bars: Neutral Background + Stacked Category Indicators
+## Event Statistics Summary Section
 
-### Concept
-Replace the current full-height colored bars with:
-1. A **light grey full-height bar** for any day that has events (neutral background indicating "event activity")
-2. **Small colored boxes stacked at the bottom** of the chart, one per active event, colored by category
+A new section below the Event Calendar Overview providing BTEA with distributional insights about the events calendar.
 
-This cleanly handles overlapping events -- if a day has 3 events, there are 3 small colored boxes stacked at the bottom, each showing its category color.
+### Data Model Updates (`src/data/eventCalendarData.ts`)
 
-### Changes to `src/components/dashboard/EventCalendarOverview.tsx`
+Add two new fields to `CalendarEvent`:
+- `area`: string (e.g. "Manama", "Muharraq", "Seef", "Riffa", "Bahrain Bay") -- derived from venue locations
+- `isFree`: boolean
 
-**Data preparation:**
-- Instead of setting per-category values to `yMax`, compute two things per day:
-  - `eventBackground`: set to `yMax` if any events are active, 0 otherwise (for the grey background bar)
-  - `eventSlot1`, `eventSlot2`, `eventSlot3` (etc.): stacked bar values. Each slot gets a fixed small height (e.g. `yMax * 0.04`). The number of slots equals the max concurrent events across all days. Each slot stores the category name for coloring via `Cell`.
-  - Store a parallel array `eventSlotCategories` mapping slot index to the category for that day's events.
+Update all 18 sample events with these fields, distributing areas across Bahrain locations and mixing free/paid.
 
-**Chart rendering:**
-- One `Bar` for `eventBackground` -- light grey (`#e5e5e5`), `fillOpacity={0.25}`, full-height, rendered first behind everything.
-- Multiple stacked `Bar`s for event slots (`eventSlot1`, `eventSlot2`, etc.) with `stackId="events"`, small fixed height, positioned at the bottom. Each bar uses `Cell` components to dynamically set the fill color based on the category stored in the data.
-- The KPI `Line` renders last, on top.
+### New Component (`src/components/dashboard/EventStatisticsSummary.tsx`)
 
-**Stacking at the bottom:**
-- Add a second hidden Y-axis (`yAxisId="slots"`) with domain `[0, maxSlots]` where each slot = 1 unit.
-- The slot bars use this axis so they naturally stack from the bottom with small fixed heights.
-- Alternatively, keep the `kpi` axis and set slot values to small fractions of `yMax` so they appear as thin bands at the chart bottom.
+A card-based section with the title "Event Statistics Summary" containing a responsive grid of 6 items:
 
-**Color assignment per cell:**
-- For each slot `Bar`, iterate over `chartData` and render `Cell` components with `fill` set to the category color of the event in that slot, or transparent if no event occupies that slot.
+1. **Total Events card** -- Large number (e.g. "18") with a simulated YoY change badge (e.g. "+12% vs last year"). Simple summary card using Card component.
 
-**Legend:**
-- Keep existing legend (category color dots + KPI line indicator). Add a grey indicator for "Event period" if desired.
+2. **Events by Category** -- Horizontal bar chart (Recharts `BarChart` with `layout="vertical"`) showing count per category, colored by `CATEGORY_COLORS`.
+
+3. **Average Events per Month** -- Vertical bar chart with Jan/Feb/Mar bars showing event count per month.
+
+4. **Event Density by Area** -- Horizontal bar chart showing count per area (Manama, Muharraq, etc.).
+
+5. **Free vs Paid Split** -- Donut chart (Recharts `PieChart` with inner radius) showing the ratio.
+
+6. **Average Event Duration** -- Summary card showing the average duration in days across all events.
+
+Layout: 3-column grid on desktop (`grid-cols-3`), 2 columns on tablet, 1 on mobile. Each chart ~200px tall inside its card.
+
+### Page Integration (`src/pages/Index.tsx`)
+
+Import and render `EventStatisticsSummary` below `EventCalendarOverview` in the main area.
 
 ### Technical Details
 
-The `ChartDataPoint` interface changes to:
-
-```text
-{
-  date, dateLabel, kpiValue, events,
-  eventBackground: number,        // yMax or 0
-  eventSlot1: number,             // small fixed value or 0
-  eventSlot2: number,             // small fixed value or 0
-  eventSlot3: number,             // small fixed value or 0
-  slotCategories: EventCategory[] // categories for coloring
-}
-```
-
-Max concurrent events in the sample data is 2 (some days have overlapping events). We'll support up to 3-4 slots for safety.
-
-Each slot `Bar` renders `Cell` children dynamically:
-```text
-<Bar dataKey="eventSlot1" stackId="indicators" yAxisId="kpi" ...>
-  {chartData.map((entry, i) => (
-    <Cell key={i} fill={entry.slotCategories[0] ? CATEGORY_COLORS[...] : 'transparent'} />
-  ))}
-</Bar>
-```
-
-The slot height value will be approximately `yMax * 0.035` per slot, so 3 stacked events take about 10% of chart height -- visible but unobtrusive.
+- All statistics are computed from `sampleEvents` using `useMemo`
+- Duration calculated via `differenceInDays` from date-fns (endDate - startDate + 1)
+- Month grouping via `getMonth` from date-fns
+- No new dependencies needed -- uses existing Recharts and shadcn Card components
+- Colors for charts reuse `CATEGORY_COLORS` where applicable, neutral colors for area/month charts
 
